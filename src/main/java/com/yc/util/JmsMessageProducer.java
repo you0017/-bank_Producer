@@ -1,24 +1,20 @@
-package com.yc.service;
+package com.yc.util;
 
 import com.google.gson.Gson;
 import com.yc.bean.MessageBean;
-import lombok.ToString;
-import lombok.extern.log4j.Log4j;
-import org.apache.velocity.Template;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.jms.Message;
-
 @Component
-@Log4j
+@Log4j2
 public class JmsMessageProducer {
 
     @Autowired
     private JmsTemplate jmsTemplate;
-    @Value("${queueName}")
+    @Value("${spring.activemq.queue}")
     private String queueName;
 
     public void sendMessage(MessageBean messageBean) {

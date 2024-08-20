@@ -1,12 +1,11 @@
-package com.yc.exception;
+package com.yc.handler;
 
 import com.yc.bean.JsonModel;
-import com.yc.util.JmsMessageProducer;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class AllException {
+public class GlobalException {
 
     @ExceptionHandler(Exception.class)
     public JsonModel exceptionHandler(Exception e) {

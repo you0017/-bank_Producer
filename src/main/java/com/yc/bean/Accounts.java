@@ -1,5 +1,6 @@
 package com.yc.bean;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -10,26 +11,26 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 
 
-@ManagedResource(objectName = "com.yc:name=Account")
+@ManagedResource(objectName = "com.yc:name=Accounts")
 @Component
-public class Account implements Serializable {
-    @TableId(value = "accountid")
-    private Integer accountid;
+public class Accounts implements Serializable {
+    @TableId(value = "accountid", type = IdType.AUTO)
+    private Integer accountId;
     private Double balance;
     private String email;
 
-    public Account() {
+    public Accounts() {
     }
 
     @ManagedAttribute
-    public Integer getAccountid() {
-        return accountid;
+    public Integer getAccountId() {
+        return accountId;
     }
 
     @ManagedOperation
     @ManagedOperationParameter(name = "accountid", description = "账户id")
-    public void setAccountid(Integer accountid) {
-        this.accountid = accountid;
+    public void setAccountId(Integer accountid) {
+        this.accountId = accountid;
     }
     @ManagedAttribute
     public Double getBalance() {

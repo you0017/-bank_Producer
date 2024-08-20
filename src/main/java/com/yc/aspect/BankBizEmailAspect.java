@@ -1,44 +1,32 @@
 package com.yc.aspect;
 
-import com.yc.VelocityConfig;
-import com.yc.bean.Account;
+
+import com.yc.bean.Accounts;
 import com.yc.bean.MessageBean;
 import com.yc.service.BankBiz;
-import com.yc.service.JmsMessageProducer;
-import com.yc.service.MailBiz;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import com.yc.util.JmsMessageProducer;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-import java.io.StringWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Aspect
 @Component
 @Order(1)
 public class BankBizEmailAspect {
 
-    @Pointcut("execution(* com.yc.service.BankBizImpl.deposit(..))")
+    @Pointcut("execution(* com.yc.service.impl.BankBizImpl.deposit(..))")
     public void deposit() {
     }
 
-    @Pointcut("execution(* com.yc.service.BankBizImpl.withdraw(..))")
+    @Pointcut("execution(* com.yc.service.impl.BankBizImpl.withdraw(..))")
     public void withdraw() {
     }
 
-    @Pointcut("execution(* com.yc.service.BankBizImpl.transfer(..))")
+    @Pointcut("execution(* com.yc.service.impl.BankBizImpl.transfer(..))")
     public void transfer() {
     }
 
@@ -74,6 +62,7 @@ public class BankBizEmailAspect {
 
     @After(value = "deposit() || withdraw() || transfer()")
     public void sendEmail(JoinPoint joinPoint) {
+
         int accountid = (int) joinPoint.getArgs()[0];
         double money = (double) joinPoint.getArgs()[1];
         int toAccountId;
@@ -82,7 +71,7 @@ public class BankBizEmailAspect {
         } else {
             toAccountId = 0;
         }
-        Account account = bankBiz.findAccount(accountid);
+        Accounts account = bankBiz.findAccount(accountid);
         String email = account.getEmail();
         String info;
         String methodName = joinPoint.getSignature().getName();

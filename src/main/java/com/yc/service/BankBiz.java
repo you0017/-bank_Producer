@@ -1,24 +1,25 @@
 package com.yc.service;
 
 
-import com.yc.bean.Account;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.yc.bean.Accounts;
 
-public interface BankBiz {
+public interface BankBiz extends IService<Accounts> {
     // 添加Account账号
-    public Account openAccount(double money);
+    public Accounts openAccount(Accounts account);
 
     // 修改Account账号money
-    public Account deposit( int accountid, double money);
+    public Accounts deposit(int accountid, double money);
 
     // 取款
-    public Account withdraw( int accountid, double money);
+    public Accounts withdraw(int accountid, double money);
 
     // 转账
-    public Account transfer(int accountid, double money,int toAccountId);
+    public Accounts transfer(Integer accountId,Double balance, int toAccountId);
 
 
     // 根据id查询Account账号信息
-    public Account findAccount( int accountid);
+    public Accounts findAccount(int accountid);
 
-    Account email(int accountId);
+    Accounts email(int accountId);
 }

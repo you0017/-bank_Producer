@@ -1,8 +1,14 @@
-package com.yc.service;
+package com.yc.service.impl;
 
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yc.bean.Accounts;
 import com.yc.bean.OpRecord;
-import lombok.extern.log4j.Log4j;
+import com.yc.bean.OpType;
+import com.yc.mapper.AccountMapper;
+import com.yc.mapper.OpRecordMapper;
+import com.yc.service.BankBiz;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,13 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import com.yc.bean.Account;
-import com.yc.bean.OpType;
-import com.yc.dao.AccountDao;
-import com.yc.dao.OpRecordDao;
 
 @Service
-@Log4j
+@Log4j2
 @Transactional(
         propagation = Propagation.REQUIRED,
         isolation = Isolation.DEFAULT,
@@ -26,36 +28,33 @@ import com.yc.dao.OpRecordDao;
         rollbackFor = {RuntimeException.class}
 )
 @ManagedResource(objectName = "com.yc:name=BankBiz")
-public class BankBizImpl implements BankBiz {
-    @Autowired
-    private AccountDao accountDao;
-    @Autowired
-    private OpRecordDao opRecordDao;
+public class BankBizImpl extends ServiceImpl<AccountMapper, Accounts> implements BankBiz {
 
+    @Autowired
+    private OpRecordMapper opRecordMapper;
+    @Autowired
+    private AccountMapper accountMapper;
 
     @Override
-    public Account openAccount(double money) {
+    public Accounts openAccount(Accounts account) {
         //操作：开户
-        int accountid = accountDao.insert(money);
+        accountMapper.insert(account);
         //操作2：流水记录
         OpRecord record = new OpRecord();
-        record.setAccountid(accountid);
-        record.setOpmoney(money);
+        record.setAccountid(account.getAccountId());
+        record.setOpmoney(account.getBalance());
         record.setOptype(OpType.DEPOSITE);
-        opRecordDao.insertOpRecord(record);
+        opRecordMapper.insert(record);
         //操作3：构建返回值
-        Account a = new Account();
-        a.setAccountid(accountid);
-        a.setBalance(money);
 
-        log.info("开户"+accountid+",存入"+money);
-        return a;
+        log.info("开户"+account.getAccountId()+",存入"+account.getBalance());
+        return account;
     }
 
     @Override
     @CachePut(value = "bank_web",key = "#accountid")
-    public Account deposit(int accountid, double money) {
-        Account a = null;
+    public Accounts deposit(int accountid, double money) {
+        Accounts a = null;
         try{
             a = this.findAccount(accountid);
         }catch (Exception e){
@@ -63,13 +62,16 @@ public class BankBizImpl implements BankBiz {
             throw new RuntimeException("账户不存在:"+accountid+",无法完成存款操作");
         }
         a.setBalance(a.getBalance()+money);
-        accountDao.update(accountid,a.getBalance());
+        this.lambdaUpdate()
+                        .eq(Accounts::getAccountId,accountid)
+                        .set(Accounts::getBalance,a.getBalance())
+                .update();
         //操作2：流水记录
         OpRecord record = new OpRecord();
         record.setAccountid(accountid);
         record.setOpmoney(money);
         record.setOptype(OpType.DEPOSITE);
-        opRecordDao.insertOpRecord(record);
+        opRecordMapper.insert(record);
         return a;
 
     }
@@ -77,8 +79,8 @@ public class BankBizImpl implements BankBiz {
     @Override
     @CachePut(value = "bank_web",key = "#accountid")
     //@Transactional
-    public Account withdraw(int accountid, double money) {
-        Account a = null;
+    public Accounts withdraw(int accountid, double money) {
+        Accounts a = null;
         try{
             a = this.findAccount(accountid);
         }catch (Exception e){
@@ -92,33 +94,38 @@ public class BankBizImpl implements BankBiz {
         record.setAccountid(accountid);
         record.setOpmoney(money);
         record.setOptype(OpType.WITHDRAW);
-        opRecordDao.insertOpRecord(record);
+        opRecordMapper.insert(record);
 
         //TODO:要判断余额是否足够,利用数据库中的约束来完成金额的检查
         a.setBalance(a.getBalance()-money);
-        accountDao.update(accountid,a.getBalance());
+        this.lambdaUpdate()
+                .eq(Accounts::getAccountId,accountid)
+                .set(Accounts::getBalance,a.getBalance())
+                .update();
         return a;
     }
 
     @Override
-    @CachePut(value = "bank_web",key = "#accountid")
-    public Account transfer(int accountid, double money, int toAccountId) {
-        this.deposit(toAccountId,money);
-        Account a = this.withdraw(accountid, money);
+    @CachePut(value = "bank_web",key = "#accountId")
+    public Accounts transfer(Integer accountId,Double balance, int toAccountId) {
+        this.deposit(toAccountId,balance);
+        Accounts a = this.withdraw(accountId,balance);
         return a;
     }
 
     @Override
     @Transactional(readOnly =true)
     @Cacheable(value = "bank_web",key = "#accountid")
-    public Account findAccount(int accountid) {
-        return this.accountDao.findById(accountid);
+    public Accounts findAccount(int accountid) {
+        return accountMapper.selectById(accountid);
     }
 
     @Override
     @Cacheable(value = "bank_web",key = "#accountid")
-    public Account email(int accountid) {
-        Account account = this.accountDao.findById(accountid);
+    public Accounts email(int accountid) {
+        Accounts account = this.lambdaQuery()
+                .eq(Accounts::getAccountId,accountid)
+                .one();
         return account;
     }
 }

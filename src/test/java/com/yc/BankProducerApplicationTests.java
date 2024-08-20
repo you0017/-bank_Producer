@@ -1,4 +1,4 @@
-package com.yc.bank_producer;
+package com.yc;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

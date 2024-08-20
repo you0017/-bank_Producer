@@ -40,13 +40,13 @@
         },
         methods:{
             email(index){
-                var params = new URLSearchParams();
+                var s = "";
                 if (index==1){
-                    params.append('accountid',this.accountid);
+                    s = '?accountId='+this.accountid;
                 }else{
-                    params.append('accountid',this.toaccountid);
+                    s = '?accountId='+this.toaccountid;
                 }
-                axios.post('account.action?op=email',params).then(result=>{
+                axios.get('account.action/getEmail'+s).then(result=>{
                     if(result.data.code==1){
                         if (index==1){
                             this.e = result.data.obj.email;
@@ -64,65 +64,59 @@
             },
             deposit:function (){
                 var params = new URLSearchParams();
-                params.append("accountid",this.accountid);
-                params.append("money",this.money);
-                params.append("op","deposit");
-                axios.post('account.action',params).then(result =>{
+                params.append("accountId",this.accountid);
+                params.append("balance",this.money);
+                axios.post('account.action/deposit',params).then(result =>{
                     if (result.data.code == 0){
                         alert(result.data.error);
                     }else {
-                        this.re = result.data.obj.accountid + "号账户存款" + this.money + "元成功，余额:" + result.data.obj.balance;
+                        this.re = result.data.obj.accountId + "号账户存款" + this.money + "元成功，余额:" + result.data.obj.balance;
                     }
                 });
             },
             withdraw:function (){
                 var params = new URLSearchParams();
-                params.append("accountid",this.accountid);
-                params.append("money",this.money);
-                params.append("op","withdraw");
-                axios.post('account.action',params).then(result =>{
+                params.append("accountId",this.accountid);
+                params.append("balance",this.money);
+                axios.post('account.action/withdraw',params).then(result =>{
                     if (result.data.code == 0){
                         alert(result.data.error);
                     }else {
-                        this.re=result.data.obj.accountid + "号账户取款" + this.money + "元成功，余额:" + result.data.obj.balance;
+                        this.re=result.data.obj.accountId + "号账户取款" + this.money + "元成功，余额:" + result.data.obj.balance;
                     }
                 });
             },
             transfer:function (){
                 var params = new URLSearchParams();
-                params.append("accountid",this.accountid);
-                params.append("money",this.money);
-                params.append("toaccountid",this.toaccountid);
-                params.append("op","transfer");
-                axios.post('account.action',params).then(result =>{
+                params.append("accountId",this.accountid);
+                params.append("balance",this.money);
+                params.append("toAccountId",this.toaccountid);
+
+                axios.post('account.action/transfer',params).then(result =>{
                     if (result.data.code == 0){
                         alert(result.data.error);
                     }else {
-                        this.re = result.data.obj.accountid + "号账户转账" + this.money + "元至" + this.toaccountid + "成功,余额:" + result.data.obj.balance;
+                        this.re = result.data.obj.accountId + "号账户转账" + this.money + "元至" + this.toaccountid + "成功,余额:" + result.data.obj.balance;
                     }
                 });
             },
             query:function (){
-                var params = new URLSearchParams();
-                params.append("accountid",this.accountid);
-                params.append("op","query");
-                axios.post('account.action',params).then(result =>{
+
+                axios.get('account.action/query?accountId='+this.accountid).then(result =>{
                     if (result.data.code == 0){
                         alert(result.data.error);
                     }else {
-                        this.re = result.data.obj.accountid + "号账户，余额:" +  result.data.obj.balance;
+                        this.re = result.data.obj.accountId + "号账户，余额:" +  result.data.obj.balance;
                     }
                 });
             },
             openAccount:function (){
-                var params = new URLSearchParams();
-                params.append("money",this.money);
-                params.append("op","openAccount");
-                axios.post('account.action',params).then(result =>{
+
+                axios.post('account.action/openAccount',{"balance":this.money},{}).then(result =>{
                     if (result.data.code == 0){
                         alert(result.data.error);
                     }else {
-                        this.re = result.data.obj.accountid + "号账户开户成功，余额:" + result.data.obj.balance;
+                        this.re = result.data.obj.accountId + "号账户开户成功，余额:" + result.data.obj.balance;
                     }
                 });
             }

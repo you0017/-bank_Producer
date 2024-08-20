@@ -1,113 +1,89 @@
-package com.yc.web.servlets;
+package com.yc.controller;
 
 
-import com.yc.bean.Account;
+import com.yc.bean.Accounts;
+import com.yc.bean.JsonModel;
+import com.yc.mapper.AccountMapper;
 import com.yc.service.BankBiz;
-import com.yc.web.servlets.model.JsonModel;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+@RestController
+@RequestMapping("/account.action")
+public class AccountServlet {
 
-@WebServlet("/account.action")
-public class AccountServlet extends BaseServlet {
-    protected void email(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getParameter("accountid").equals("")){
-            return;
+    @Autowired
+    private BankBiz bankBiz;
+    @Autowired
+    private AccountMapper accountMapper;
+    @GetMapping("/getEmail")
+    public JsonModel email (@RequestParam(value = "accountId",defaultValue = "0") Integer accountId){
+        if (accountId == 0){
+            JsonModel jm = new JsonModel();
+            jm.setCode(0);
+            jm.setObj("accountId不能为空");
+            return jm;
         }
-        int accountId = Integer.parseInt(req.getParameter("accountid"));
 
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
-        Account account = bankBiz.email(accountId);
+        Accounts account = bankBiz.email(accountId);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(account);
-        super.writeJson(jm,resp);
+        return jm;
     }
 
-    protected void deposit(HttpServletRequest req, HttpServletResponse resp) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        int accountid = Integer.parseInt(req.getParameter("accountid"));
-        double money = Double.parseDouble(req.getParameter("money"));
-
-        //从spring容器中获取业务对象来操作
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
-
-        Account a = bankBiz.deposit(accountid, money);
+    @PostMapping("/deposit")
+    protected JsonModel deposit(Integer accountId, Double balance) {
+        Accounts a = bankBiz.deposit(accountId, balance);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(a);
-        super.writeJson(jm,resp);
+        return jm;
     }
 
-    protected void withdraw(HttpServletRequest req, HttpServletResponse resp) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        int accountid = Integer.parseInt(req.getParameter("accountid"));
-        double money = Double.parseDouble(req.getParameter("money"));
-
-        //从spring容器中获取业务对象来操作
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
-
-        Account a = bankBiz.withdraw(accountid, money);
+    @PostMapping("/withdraw")
+    public JsonModel withdraw(Integer accountId, Double balance) {
+        Accounts a = bankBiz.withdraw(accountId, balance);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(a);
-        super.writeJson(jm,resp);
+        return jm;
     }
 
-    protected void openAccount(HttpServletRequest req, HttpServletResponse resp) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        double money = Double.parseDouble(req.getParameter("money"));
 
-        //从spring容器中获取业务对象来操作
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
-
-        Account a = bankBiz.openAccount( money);
+    @PostMapping("/openAccount")
+    public JsonModel openAccount(@RequestBody Accounts account) {
+        Accounts a = bankBiz.openAccount( account);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(a);
-        super.writeJson(jm,resp);
+        return jm;
     }
 
-    protected void query(HttpServletRequest req, HttpServletResponse resp) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        int accountid = Integer.parseInt(req.getParameter("accountid"));
+    @GetMapping("/query")
+    public JsonModel query(@RequestParam(value = "accountId",defaultValue = "0") Integer accountId) {
 
-        //从spring容器中获取业务对象来操作
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
+        if (accountId == 0){
+            JsonModel jm = new JsonModel();
+            jm.setCode(0);
+            jm.setObj("accountId不能为空");
+            return jm;
+        }
 
-        Account a = bankBiz.findAccount( accountid);
+        Accounts a = bankBiz.findAccount(accountId);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(a);
-        super.writeJson(jm,resp);
+        return jm;
     }
 
-    protected void transfer(HttpServletRequest req, HttpServletResponse resp) throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        int accountid = Integer.parseInt(req.getParameter("accountid"));
-        double money = Double.parseDouble(req.getParameter("money"));
-        int toaccountid = Integer.parseInt(req.getParameter("toaccountid"));
+    @PostMapping("/transfer")
+    public JsonModel transfer(Integer accountId, Double balance, Integer toAccountId){
 
-        //从spring容器中获取业务对象来操作
-        ServletContext application = req.getServletContext();
-        WebApplicationContext ac = WebApplicationContextUtils.getWebApplicationContext(application);
-        BankBiz bankBiz = (BankBiz) ac.getBean("bankBizImpl");
-
-        Account a = bankBiz.transfer( accountid,money,toaccountid);
+        Accounts a = bankBiz.transfer( accountId,balance,toAccountId);
         JsonModel jm = new JsonModel();
         jm.setCode(1);
         jm.setObj(a);
-        super.writeJson(jm,resp);
+        return jm;
     }
 }

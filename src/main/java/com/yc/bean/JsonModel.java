@@ -1,4 +1,4 @@
-package com.yc.web.servlets.model;
+package com.yc.bean;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
